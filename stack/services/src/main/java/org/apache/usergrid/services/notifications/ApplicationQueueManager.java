@@ -343,6 +343,7 @@ public class ApplicationQueueManager implements QueueManager {
                                     providerAdapter.sendNotification(message.getNotifierId(), notifier, payload, notification, tracker);
                                 } catch (Exception e) {
                                     tracker.failed(0, e.getMessage());
+                                    LOG.warn("failed to send notification with exception",e);
                                 } finally {
                                     LOG.info("sending to device {} for Notification: {} duration " + (System.currentTimeMillis() - now) + " ms", deviceUUID, notification.getUuid());
                                 }
