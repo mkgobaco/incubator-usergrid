@@ -51,7 +51,6 @@ import org.apache.usergrid.persistence.model.field.value.Location;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.apache.usergrid.persistence.index.impl.EsEntityIndexImpl.ANALYZED_PREFIX;
 import static org.apache.usergrid.persistence.index.impl.EsEntityIndexImpl.GEO_SUFFIX;
 
 

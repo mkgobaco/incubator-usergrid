@@ -136,12 +136,10 @@ public class EsQueryVistor implements QueryVisitor {
 
     @Override
     public void visit( ContainsOperand op ) throws NoFullTextIndexException {
-        String name = op.getProperty().getValue();
-        name = name.toLowerCase();
+        String name = EsEntityIndexImpl.Types.STRING_ANALYZED + op.getProperty().getValue().toLowerCase();
         Object value = op.getLiteral().getValue();
-        if ( value instanceof String ) {
-            name = addAnayzedSuffix( name );
-        }        
+
+
         stack.push( QueryBuilders.matchQuery( name, value ));
     }
 
@@ -149,7 +147,7 @@ public class EsQueryVistor implements QueryVisitor {
     public void visit( WithinOperand op ) {
 
         String name = op.getProperty().getValue();
-        name = EsEntityIndexImpl.Types.LOCATION.PREFIX+ name.toLowerCase()  ;
+        name = EsEntityIndexImpl.Types.LOCATION.PREFIX + name.toLowerCase()  ;
 
         float lat = op.getLatitude().getFloatValue();
         float lon = op.getLongitude().getFloatValue();
@@ -162,30 +160,28 @@ public class EsQueryVistor implements QueryVisitor {
 
     @Override
     public void visit( LessThan op ) throws NoIndexException {
-        String name = op.getProperty().getValue();
-        name = name.toLowerCase();
+        String name = op.getProperty().getValue().toLowerCase();
         Object value = op.getLiteral().getValue();
-        if ( value instanceof String ) {
-            name = addAnayzedSuffix( name );
-        }
+
+        name = normalizeFieldName( name, value );
+
         stack.push( QueryBuilders.rangeQuery( name ).lt( value ));
     }
 
     @Override
     public void visit( LessThanEqual op ) throws NoIndexException {
-        String name = op.getProperty().getValue();
-        name = name.toLowerCase();
+        String name = op.getProperty().getValue().toLowerCase();
         Object value = op.getLiteral().getValue();
-        if ( value instanceof String ) {
-            name = addAnayzedSuffix( name );
-        }
+
+        name = normalizeFieldName( name, value );
+
+
         stack.push( QueryBuilders.rangeQuery( name ).lte( value ));
     }
 
     @Override
     public void visit( Equal op ) throws NoIndexException {
-        String name = op.getProperty().getValue();
-        name = name.toLowerCase();
+        String name = op.getProperty().getValue().toLowerCase();
         Object value = op.getLiteral().getValue();
 
         if ( value instanceof String ) {
@@ -193,45 +189,65 @@ public class EsQueryVistor implements QueryVisitor {
 
             if ( svalue.indexOf("*") != -1 ) {
                 // for wildcard expression we need analuzed field, add suffix
-                //name = addAnayzedSuffix( name );
+                name = EsEntityIndexImpl.Types.STRING_ANALYZED +  name ;
                 stack.push( QueryBuilders.wildcardQuery(name, svalue) );
                 return;
             } 
 
             // for equal operation on string, need to use unanalyzed field, leave off the suffix
-            value = svalue; 
-        } 
+            value = svalue;
+
+
+        }
+
+        name = normalizeFieldName( name, value );
+
         stack.push( QueryBuilders.termQuery( name, value ));
     }
 
     @Override
     public void visit( GreaterThan op ) throws NoIndexException {
-        String name = op.getProperty().getValue();
-        name = name.toLowerCase();
+        String name = op.getProperty().getValue().toLowerCase();
         Object value = op.getLiteral().getValue();
-        if ( value instanceof String ) {
-            name = addAnayzedSuffix( name );
-        }
+
+        name = normalizeFieldName( name, value );
+
         stack.push( QueryBuilders.rangeQuery( name ).gt( value ) );
     }
 
     @Override
     public void visit( GreaterThanEqual op ) throws NoIndexException {
-        String name = op.getProperty().getValue();
-        name = name.toLowerCase();
+        String name = op.getProperty().getValue().toLowerCase();
         Object value = op.getLiteral().getValue();
-        if ( value instanceof String ) {
-            name = addAnayzedSuffix( name );
-        }
+
+        name = normalizeFieldName( name, value );
+
         stack.push( QueryBuilders.rangeQuery( name ).gte( value ) );
     }
 
-    private String addAnayzedSuffix( String name ) {
-        if ( name.endsWith(EsEntityIndexImpl.ANALYZED_PREFIX) ) {
-            return name;
-        } 
-        return name + EsEntityIndexImpl.ANALYZED_PREFIX;
-    } 
+//    private String addAnayzedSuffix( String name ) {
+//        if ( name.endsWith(EsEntityIndexImpl.ANALYZED_PREFIX) ) {
+//            return name;
+//        }
+//        return name + EsEntityIndexImpl.ANALYZED_PREFIX;
+//    }
+
+
+    /**
+     * Normalizes a field based on it's search value. If it's a string, the string prefix is attached.
+     * If it's not, it's assumed to be a primitive
+     *
+     * @param fieldName
+     * @param value
+     * @return
+     */
+    private String normalizeFieldName(final String fieldName, final Object value){
+        if(value instanceof String){
+            return EsEntityIndexImpl.Types.STRING.PREFIX + fieldName;
+        }
+
+        return EsEntityIndexImpl.Types.PRIMITIVE.PREFIX + fieldName;
+    }
 
     @Override
     public QueryBuilder getQueryBuilder() {

@@ -91,7 +91,6 @@ public class EsEntityIndexImpl implements EntityIndex {
     private final IndexScope indexScope;
 
     private final Client client;
-    private final SerializationFig serializationFig;
 
     protected EntityCollectionManagerFactory ecmFactory;
 
@@ -101,7 +100,6 @@ public class EsEntityIndexImpl implements EntityIndex {
     private final AtomicLong indexedCount = new AtomicLong(0L);
     private final AtomicDouble averageIndexTime = new AtomicDouble(0);
 
-    public static final String ANALYZED_PREFIX = "ug_analyzed_s";
     public static final String GEO_SUFFIX = "location";
 
 //    public static final String COLLECTION_SCOPE_FIELDNAME = "zzz__collectionscope__zzz";
@@ -122,8 +120,7 @@ public class EsEntityIndexImpl implements EntityIndex {
             @Assisted final IndexScope indexScope,
             IndexFig config,
             EsProvider provider,
-            EntityCollectionManagerFactory factory,
-            SerializationFig serializationFig
+            EntityCollectionManagerFactory factory
     ) {
 
         IndexValidationUtils.validateIndexScope( indexScope );
@@ -137,7 +134,6 @@ public class EsEntityIndexImpl implements EntityIndex {
             this.indexName = createIndexName( config.getIndexPrefix(), indexScope);
             this.indexType = createCollectionScopeTypeName( indexScope );
 
-            this.serializationFig = serializationFig;
 
             this.refresh = config.isForcedRefresh();
             this.cursorTimeout = config.getQueryCursorTimeout();
@@ -490,7 +486,7 @@ public class EsEntityIndexImpl implements EntityIndex {
                     if ( list.get(0) instanceof String ) {
                         Joiner joiner = Joiner.on(" ").skipNulls();
                         String joined = joiner.join(list);
-                        entityMap.put(Types.STRING.PREFIX+ ANALYZED_PREFIX +field.getName().toLowerCase(),
+                        entityMap.put(Types.STRING_ANALYZED.PREFIX +field.getName().toLowerCase(),
                             new ArrayList(processCollectionForMap(list)));
                         
                     }
@@ -514,7 +510,7 @@ public class EsEntityIndexImpl implements EntityIndex {
 
                 // index in lower case because Usergrid queries are case insensitive
                 entityMap.put(Types.STRING.PREFIX+field.getName().toLowerCase(), ((String) field.getValue()).toLowerCase());
-                entityMap.put(Types.STRING.PREFIX+ ANALYZED_PREFIX +field.getName().toLowerCase(), ((String) field.getValue()).toLowerCase());
+                entityMap.put(Types.STRING.STRING_ANALYZED.PREFIX +field.getName().toLowerCase(), ((String) field.getValue()).toLowerCase());
 
             } else if (f instanceof LocationField) {
                 LocationField locField = (LocationField) f;
@@ -589,7 +585,7 @@ public class EsEntityIndexImpl implements EntityIndex {
                         // any string with field name that ends with _ug_analyzed gets analyzed
                         .startObject()
                             .startObject("template_1")
-                                .field("match", Types.STRING.PREFIX + ANALYZED_PREFIX +"*")
+                                .field("match", Types.STRING_ANALYZED.PREFIX + "*")
                                 .field("match_mapping_type", "string")
                                 .startObject("mapping")
                                     .field("type", "string")
@@ -613,7 +609,7 @@ public class EsEntityIndexImpl implements EntityIndex {
                         // fields location_ug_geo get geo-indexed
                         .startObject()
                             .startObject("template_3")
-                                .field("match", Types.LOCATION + "*")
+                                .field("match", Types.LOCATION.PREFIX + "*")
                                 .startObject("mapping")
                                     .field("type", "geo_point")
                                 .endObject()
@@ -642,6 +638,7 @@ public class EsEntityIndexImpl implements EntityIndex {
     }
     public static enum Types{
         STRING("s"),
+        STRING_ANALYZED("sa"),
         LIST("l"),
         LOCATION("loc"),
         ARRAY("a"),
