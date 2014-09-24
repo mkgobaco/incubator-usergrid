@@ -51,7 +51,7 @@ import org.apache.usergrid.persistence.model.field.value.Location;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.apache.usergrid.persistence.index.impl.EsEntityIndexImpl.ANALYZED_SUFFIX;
+import static org.apache.usergrid.persistence.index.impl.EsEntityIndexImpl.ANALYZED_PREFIX;
 import static org.apache.usergrid.persistence.index.impl.EsEntityIndexImpl.GEO_SUFFIX;
 
 
@@ -241,7 +241,7 @@ class EntityIndexMapUtils {
 
             } else if (f instanceof StringField) {
                 entityMap.put(field.getName(), ((String) field.getValue()).toLowerCase());
-                entityMap.put(field.getName() + ANALYZED_SUFFIX, field.getValue());
+                entityMap.put(field.getName() + ANALYZED_PREFIX, field.getValue());
 
             } else if (f instanceof LocationField) {
                 LocationField locField = (LocationField) f;

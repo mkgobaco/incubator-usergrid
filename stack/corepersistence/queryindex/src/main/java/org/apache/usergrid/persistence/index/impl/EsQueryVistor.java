@@ -149,15 +149,11 @@ public class EsQueryVistor implements QueryVisitor {
     public void visit( WithinOperand op ) {
 
         String name = op.getProperty().getValue();
-        name = name.toLowerCase();
+        name = EsEntityIndexImpl.Types.LOCATION.PREFIX+ name.toLowerCase()  ;
 
         float lat = op.getLatitude().getFloatValue();
         float lon = op.getLongitude().getFloatValue();
         float distance = op.getDistance().getFloatValue();
-
-        if ( !name.endsWith( EsEntityIndexImpl.GEO_SUFFIX )) {
-            name += EsEntityIndexImpl.GEO_SUFFIX;
-        }
 
         FilterBuilder fb = FilterBuilders.geoDistanceFilter( name )
            .lat( lat ).lon( lon ).distance( distance, DistanceUnit.METERS );
@@ -231,10 +227,10 @@ public class EsQueryVistor implements QueryVisitor {
     }
 
     private String addAnayzedSuffix( String name ) {
-        if ( name.endsWith(EsEntityIndexImpl.ANALYZED_SUFFIX) ) {
+        if ( name.endsWith(EsEntityIndexImpl.ANALYZED_PREFIX) ) {
             return name;
         } 
-        return name + EsEntityIndexImpl.ANALYZED_SUFFIX;
+        return name + EsEntityIndexImpl.ANALYZED_PREFIX;
     } 
 
     @Override

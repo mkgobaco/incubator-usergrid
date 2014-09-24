@@ -101,8 +101,8 @@ public class EsEntityIndexImpl implements EntityIndex {
     private final AtomicLong indexedCount = new AtomicLong(0L);
     private final AtomicDouble averageIndexTime = new AtomicDouble(0);
 
-    public static final String ANALYZED_SUFFIX = "_ug_analyzed";
-    public static final String GEO_SUFFIX = "_ug_geo";
+    public static final String ANALYZED_PREFIX = "ug_analyzed_s";
+    public static final String GEO_SUFFIX = "location";
 
 //    public static final String COLLECTION_SCOPE_FIELDNAME = "zzz__collectionscope__zzz";
     public static final String ENTITYID_FIELDNAME = "zzz_entityid_zzz";
@@ -476,19 +476,21 @@ public class EsEntityIndexImpl implements EntityIndex {
 
         Map<String, Object> entityMap = new HashMap<String, Object>();
 
+
+
         for (Object f : entity.getFields().toArray()) {
             Field field = (Field) f;
 
             if (f instanceof ListField)  {
                 List list = (List) field.getValue();
-                    entityMap.put(field.getName().toLowerCase(),
+                    entityMap.put(Types.LIST.PREFIX+field.getName().toLowerCase(),
                             new ArrayList(processCollectionForMap(list)));
 
                 if ( !list.isEmpty() ) {
                     if ( list.get(0) instanceof String ) {
                         Joiner joiner = Joiner.on(" ").skipNulls();
                         String joined = joiner.join(list);
-                        entityMap.put(field.getName().toLowerCase() + ANALYZED_SUFFIX,
+                        entityMap.put(Types.STRING.PREFIX+ ANALYZED_PREFIX +field.getName().toLowerCase(),
                             new ArrayList(processCollectionForMap(list)));
                         
                     }
@@ -496,23 +498,23 @@ public class EsEntityIndexImpl implements EntityIndex {
 
             } else if (f instanceof ArrayField) {
                 List list = (List) field.getValue();
-                entityMap.put(field.getName().toLowerCase(),
+                entityMap.put(Types.ARRAY.PREFIX+field.getName().toLowerCase(),
                         new ArrayList(processCollectionForMap(list)));
 
             } else if (f instanceof SetField) {
                 Set set = (Set) field.getValue();
-                entityMap.put(field.getName().toLowerCase(),
+                entityMap.put(Types.SET.PREFIX+field.getName().toLowerCase(),
                         new ArrayList(processCollectionForMap(set)));
 
             } else if (f instanceof EntityObjectField) {
                 EntityObject eo = (EntityObject)field.getValue();
-                entityMap.put(field.getName().toLowerCase(), entityToMap(eo)); // recursion
+                entityMap.put(Types.OBJECT.PREFIX+field.getName().toLowerCase(), entityToMap(eo)); // recursion
 
             } else if (f instanceof StringField) {
 
                 // index in lower case because Usergrid queries are case insensitive
-                entityMap.put(field.getName().toLowerCase(), ((String) field.getValue()).toLowerCase());
-                entityMap.put(field.getName().toLowerCase() + ANALYZED_SUFFIX, ((String) field.getValue()).toLowerCase());
+                entityMap.put(Types.STRING.PREFIX+field.getName().toLowerCase(), ((String) field.getValue()).toLowerCase());
+                entityMap.put(Types.STRING.PREFIX+ ANALYZED_PREFIX +field.getName().toLowerCase(), ((String) field.getValue()).toLowerCase());
 
             } else if (f instanceof LocationField) {
                 LocationField locField = (LocationField) f;
@@ -521,10 +523,10 @@ public class EsEntityIndexImpl implements EntityIndex {
                 // field names lat and lon trigger ElasticSearch geo location 
                 locMap.put("lat", locField.getValue().getLatitude());
                 locMap.put("lon", locField.getValue().getLongtitude());
-                entityMap.put(field.getName().toLowerCase() + GEO_SUFFIX, locMap);
+                entityMap.put(Types.LOCATION.PREFIX+field.getName().toLowerCase(), locMap);
 
             } else {
-                entityMap.put(field.getName().toLowerCase(), field.getValue());
+                entityMap.put(Types.PRIMITIVE.PREFIX+field.getName().toLowerCase(), field.getValue());
             }
         }
 
@@ -587,7 +589,7 @@ public class EsEntityIndexImpl implements EntityIndex {
                         // any string with field name that ends with _ug_analyzed gets analyzed
                         .startObject()
                             .startObject("template_1")
-                                .field("match", "*" + ANALYZED_SUFFIX)
+                                .field("match", Types.STRING.PREFIX + ANALYZED_PREFIX +"*")
                                 .field("match_mapping_type", "string")
                                 .startObject("mapping")
                                     .field("type", "string")
@@ -599,7 +601,7 @@ public class EsEntityIndexImpl implements EntityIndex {
                         // all other strings are not analyzed
                         .startObject()
                             .startObject("template_2")
-                                .field("match", "*")
+                                .field("match", Types.STRING.PREFIX + "*")
                                 .field("match_mapping_type", "string")
                                 .startObject("mapping")
                                     .field("type", "string")
@@ -611,7 +613,7 @@ public class EsEntityIndexImpl implements EntityIndex {
                         // fields location_ug_geo get geo-indexed
                         .startObject()
                             .startObject("template_3")
-                                .field("match", "location" + GEO_SUFFIX)
+                                .field("match", Types.LOCATION + "*")
                                 .startObject("mapping")
                                     .field("type", "geo_point")
                                 .endObject()
@@ -638,5 +640,22 @@ public class EsEntityIndexImpl implements EntityIndex {
         CandidateResults results = search( query );
         return results;
     }
+    public static enum Types{
+        STRING("s"),
+        LIST("l"),
+        LOCATION("loc"),
+        ARRAY("a"),
+        SET("set"),
+        OBJECT("o"),
+        PRIMITIVE("p");
+
+        public final String PREFIX;
+
+
+        Types(String prefix) {
+            this.PREFIX = prefix+"_";
+        }
+    }
+
 
 }
