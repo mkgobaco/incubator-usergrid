@@ -17,9 +17,11 @@
 package org.apache.usergrid.persistence;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -32,13 +34,11 @@ import org.slf4j.LoggerFactory;
 import org.apache.usergrid.AbstractCoreIT;
 import org.apache.usergrid.Application;
 import org.apache.usergrid.CoreApplication;
+import org.apache.usergrid.cassandra.Concurrent;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Slf4jReporter;
-import java.util.ArrayList;
-import java.util.UUID;
-import org.apache.usergrid.cassandra.Concurrent;
 
 
 //@RunWith(JukitoRunner.class)
