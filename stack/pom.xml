@@ -21,13 +21,13 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>10</version>
+    <version>16</version>
     <relativePath></relativePath>
   </parent>
 
   <groupId>org.apache.usergrid</groupId>
   <artifactId>usergrid</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <name>Usergrid Parent</name>
   <description>Parent module for the Apache Usergrid Project</description>
   <packaging>pom</packaging>
@@ -1292,9 +1292,11 @@
         <version>1.27</version>
       </dependency>
 
-
-
-
+      <dependency>
+        <groupId>org.mindrot</groupId>
+        <artifactId>jbcrypt</artifactId>
+        <version>0.3m</version>
+      </dependency>
 
       <dependency>
         <groupId>com.apple</groupId>

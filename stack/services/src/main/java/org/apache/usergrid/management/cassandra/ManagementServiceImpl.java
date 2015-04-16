@@ -340,8 +340,26 @@ public class ManagementServiceImpl implements ManagementService {
             }
         }
         else {
-            logger.warn(
+            System.out.println(
                     "Missing values for superuser account, check properties.  Skipping superuser account setup..." );
+        }
+    }
+
+
+    @Override
+    public void resetSuperUser(String username, String password, String email) throws Exception {
+        //final AccountCreationProps.SuperUser superUser = properties.getSuperUser();
+        //this.getAdminUser
+        UserInfo user = this.getAdminUserByUsername( username );
+        if ( user == null ) {
+            try {
+                createAdminUser( username, "Super User", email, password, true, false );
+            }catch(Exception e){
+
+            }
+        }
+        else {
+            this.setAdminUserPassword( user.getUuid(), password );
         }
     }
 
@@ -1473,7 +1491,8 @@ public class ManagementServiceImpl implements ManagementService {
 
         AccountCreationProps.SuperUser superUser = properties.getSuperUser();
         if ( superUser.isEnabled() && superUser.getUsername().equals( user.getUsername() ) ) {
-            organizations = buildOrgBiMap( getOrganizations( null, 10 ) );
+            int maxOrganizations = this.getAccountCreationProps().getMaxOrganizationsForSuperUserLogin();
+            organizations = buildOrgBiMap( getOrganizations( null, maxOrganizations ) );
         }
         else {
             organizations = getOrganizationsForAdminUser( user.getUuid() );
@@ -2536,7 +2555,7 @@ public class ManagementServiceImpl implements ManagementService {
     }
 
 
-    public String buildUserAppUrl( UUID applicationId, String url, User user, String token ) throws Exception {
+    protected String buildUserAppUrl(UUID applicationId, String url, User user, String token) throws Exception {
         ApplicationInfo ai = getApplicationInfo( applicationId );
         OrganizationInfo oi = getOrganizationForApplication( applicationId );
         return String.format( url, oi.getName(), StringUtils.stringOrSubstringAfterFirst( ai.getName(), '/' ),

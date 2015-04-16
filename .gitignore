@@ -27,8 +27,9 @@ Icon
 /portal/test/coverage/instrument/js/usergrid-coverage.min.js
 /portal/test/coverage/instrument/js/usergrid.min.js
 /stack/corepersistence/priamcluster/aws.properties
-#Webstorm artifacts
+#Webstorm/IntelliJ artifacts
 .idea/
+*.iml
 stack/corepersistence/collection/nbactions.xml
 stack/corepersistence/graph/nbactions.xml
 stack/corepersistence/model/nbactions.xml
@@ -40,7 +41,7 @@ stack/corepersistence/queryindex/src/main/java/org/apache/usergrid/persistence/q
 /portal/js/templates.js
 /portal/index.html
 /portal/index-debug.html
-
+/portal/dist/*
 /portal/dist/usergrid-portal/
 /portal/dist/appsvc-ui/
 /portal/nbproject/project.properties
@@ -61,3 +62,4 @@ portal/js/templates.js
 /portal/seleniumLog.txt
 /stack/core/src/main/java/org/apache/usergrid/persistence/query/tree/QueryFilterLexer.java
 /stack/core/src/main/java/org/apache/usergrid/persistence/query/tree/QueryFilterParser.java
+/sdks/html5-javascript/node_modules/
